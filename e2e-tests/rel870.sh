@@ -25,7 +25,7 @@ EOM
 CMN_LIB_VER="cmn-lib-1"
 EOM
 
-   ../../zm-pkg-tool/pkg-build.pl --out-type=binary --pkg-installs='/opt/rr/' --pkg-name=zmb1-abc-lib --pkg-summary='its zmb-abc-lib' \
+   ../../zm-pkg-tool/pkg-build.pl --pkg-installs='/opt/rr/' --pkg-name=zmb1-abc-lib --pkg-summary='its zmb-abc-lib' \
       --pkg-version=$PKG_ABC_LIB_VER --pkg-release=$PKG_ABC_LIB_REV
 
    mv build/dist/*/* /tmp/local-repo/zmb-store/D1/
@@ -44,7 +44,7 @@ EOM
 
    chmod +x build/stage/zmb1-abc-bin/opt/rr/bin/abc.sh
 
-   ../../zm-pkg-tool/pkg-build.pl --out-type=binary --pkg-installs='/opt/rr/' --pkg-name=zmb1-abc-bin --pkg-summary='its zmb-abc-bin' \
+   ../../zm-pkg-tool/pkg-build.pl --pkg-installs='/opt/rr/' --pkg-name=zmb1-abc-bin --pkg-summary='its zmb-abc-bin' \
       --pkg-version=$PKG_ABC_BIN_VER --pkg-release=$PKG_ABC_BIN_REV \
       --pkg-depends='zmb1-abc-lib'
 
@@ -59,7 +59,7 @@ EOM
 
    chmod +x build/stage/zmb1-abc-svc/opt/rr/bin/abc-svc.sh
 
-   ../../zm-pkg-tool/pkg-build.pl --out-type=binary --pkg-installs='/opt/rr/' --pkg-name=zmb1-abc-svc --pkg-summary='its zmb-abc-svc' \
+   ../../zm-pkg-tool/pkg-build.pl --pkg-installs='/opt/rr/' --pkg-name=zmb1-abc-svc --pkg-summary='its zmb-abc-svc' \
       --pkg-version=$PKG_SVC_VER --pkg-release=$PKG_SVC_REV \
       "${SVC_DEP[@]}"
 

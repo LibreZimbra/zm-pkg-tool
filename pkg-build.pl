@@ -263,13 +263,6 @@ sub Init()
          default_sub  => sub { return "pkg-spec"; },
       },
       {
-         name         => "OUT_TYPE",
-         type         => "=s",
-         hash_src     => \%cmd_hash,
-         validate_sub => &_ValidateOutType,
-         default_sub  => sub { return "all"; },
-      },
-      {
          name         => "OUT_BASE_DIR",
          type         => "=s",
          hash_src     => \%cmd_hash,
@@ -591,8 +584,7 @@ sub Build()
    if ( $CFG{PKG_FORMAT} eq "rpm" )
    {
       my @pkg_type_opts = ("-ba");
-      @pkg_type_opts = ("-bb") if ( $CFG{OUT_TYPE} eq "binary" );
-      @pkg_type_opts = ("-bs") if ( $CFG{OUT_TYPE} eq "source" );
+      @pkg_type_opts = ("-bb");
 
       System( "mv", "$CFG{OUT_TEMP_DIR}/$CFG{PKG_NAME}/rpm/1.spec", "$CFG{OUT_TEMP_DIR}/$CFG{PKG_NAME}/rpm/$CFG{PKG_NAME}.spec" );
       System( "mkdir", "-p", "$CFG{OUT_TEMP_DIR}/$CFG{PKG_NAME}/BUILDROOT/" );
@@ -612,8 +604,7 @@ sub Build()
    elsif ( $CFG{PKG_FORMAT} eq "deb" )
    {
       my @pkg_type_opts = ( "-uc", "-us" );
-      push( @pkg_type_opts, "-b" ) if ( $CFG{OUT_TYPE} eq "binary" );
-      push( @pkg_type_opts, "-S" ) if ( $CFG{OUT_TYPE} eq "source" );
+      push( @pkg_type_opts, "-b" );
 
       System( "cp", "-a", $_, "$CFG{OUT_TEMP_DIR}/$CFG{PKG_NAME}/@{[basename $_]}" ) foreach glob("$CFG{OUT_STAGE_DIR}/$CFG{PKG_NAME}/*");
 

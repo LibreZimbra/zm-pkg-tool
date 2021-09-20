@@ -288,7 +288,7 @@ sub Init()
          type         => "=s",
          hash_src     => \%cmd_hash,
          validate_sub => undef,
-         default_sub  => sub { return "$CFG{OUT_BASE_DIR}/dist"; },
+         default_sub  => sub { return "../../build/packages"; },
       },
       {
          name         => "PKG_NAME",

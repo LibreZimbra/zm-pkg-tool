@@ -236,29 +236,6 @@ sub GetPkgFormat()
    }
 }
 
-sub GetOsTag()
-{
-   our $gOSTAG;
-
-   if ( !defined $gOSTAG )
-   {
-      if ( -f "/etc/redhat-release" )
-      {
-         chomp( $gOSTAG = `sed -n -e '1{s/[^0-9]*/r/; s/[.].*//; p;}' /etc/redhat-release` );
-      }
-      elsif ( -f "/etc/lsb-release" )
-      {
-         chomp( $gOSTAG = `sed -n -e '/DISTRIB_RELEASE/{s/.*=/u/; s/[.].*//; p;}' /etc/lsb-release` );
-      }
-      else
-      {
-         Die("Unknown OS");
-      }
-   }
-
-   return $gOSTAG
-}
-
 sub _ValidateOutType($)
 {
    my $ty = shift;
@@ -418,13 +395,6 @@ sub Init()
          validate_sub => undef,
          default_sub  => sub { return GetPkgFormat(); },
       },
-      {
-         name         => "PKG_OS_TAG",
-         type         => "",
-         hash_src     => \%cmd_hash,
-         validate_sub => undef,
-         default_sub  => sub { return GetOsTag(); },
-      },
    );
 
    {
@@ -481,9 +451,6 @@ sub _SanitizePkgList($)
             $pkn =~ s/[(]$//;
             $ver =~ s/[)]$//;
 
-            my $no_add_os_tag = 1
-              if ( $ver =~ s/[!]$// );
-
             my $san_comp = "";
 
             if ($pkn)
@@ -492,15 +459,13 @@ sub _SanitizePkgList($)
 
                if ( $cmp && $ver )
                {
-                  my $tag = ( !$no_add_os_tag && $ver =~ m/[-][^-]*$/ ) ? ".$CFG{PKG_OS_TAG}" : "";
-
                   if ( $CFG{PKG_FORMAT} eq "deb" )
                   {
                      $cmp = ">>" if ( $cmp eq ">" );
                      $cmp = "<<" if ( $cmp eq "<" );
                      $cmp = "="  if ( $cmp eq "==" );
 
-                     $san_comp .= " (" . $cmp . " " . $ver . "$tag)";
+                     $san_comp .= " (" . $cmp . " " . $ver . ")";
                   }
                   if ( $CFG{PKG_FORMAT} eq "rpm" )
                   {
@@ -508,7 +473,7 @@ sub _SanitizePkgList($)
                      $cmp = "<" if ( $cmp eq "<<" );
                      $cmp = "=" if ( $cmp eq "==" );
 
-                     $san_comp .= " " . $cmp . " " . $ver . "$tag";
+                     $san_comp .= " " . $cmp . " " . $ver;
                   }
                }
             }
@@ -529,12 +494,12 @@ sub _SanitizePkgList($)
 
 sub Build()
 {
-   System( "rm", "-f", $_ ) foreach glob("$CFG{OUT_DIST_DIR}/$CFG{PKG_OS_TAG}/$CFG{PKG_NAME}_*");
-   System( "rm", "-f", $_ ) foreach glob("$CFG{OUT_DIST_DIR}/$CFG{PKG_OS_TAG}/$CFG{PKG_NAME}-*.rpm");
+   System( "rm", "-f", $_ ) foreach glob("$CFG{OUT_DIST_DIR}/$CFG{PKG_NAME}_*");
+   System( "rm", "-f", $_ ) foreach glob("$CFG{OUT_DIST_DIR}/$CFG{PKG_NAME}-*.rpm");
 
    System( "rm",    "-rf", "$CFG{OUT_TEMP_DIR}/$CFG{PKG_NAME}/" );
    System( "mkdir", "-p",  "$CFG{OUT_TEMP_DIR}/$CFG{PKG_NAME}/" );
-   System( "mkdir", "-p",  "$CFG{OUT_DIST_DIR}/$CFG{PKG_OS_TAG}/" );
+   System( "mkdir", "-p",  "$CFG{OUT_DIST_DIR}/" );
 
    my $pkg_pre_install_list = "";
    my $pkg_post_install_list = "";
@@ -589,7 +554,6 @@ sub Build()
                   $line =~ s/[@][@]PKG_PRE_INSTALL[@][@]/$pkg_pre_install_list/g;
                   $line =~ s/[@][@]PKG_NAME[@][@]/$CFG{PKG_NAME}/g;
                   $line =~ s/[@][@]PKG_RELEASE[@][@]/$CFG{PKG_RELEASE}/g;
-                  $line =~ s/[@][@]PKG_OS_TAG[@][@]/$CFG{PKG_OS_TAG}/g;
                   $line =~ s/[@][@]PKG_VERSION[@][@]/$CFG{PKG_VERSION}/g;
                   $line =~ s/[@][@]PKG_SUMMARY[@][@]/$CFG{PKG_SUMMARY}/g;
                   $line =~ s/[@][@]PKG_DEPENDS[@][@]/@{[_SanitizePkgList($CFG{PKG_DEPENDS})]}/g;
@@ -641,8 +605,8 @@ sub Build()
 
       print "\n\n";
       print "=========================================================================================================\n";
-      System( "mv", "-v", $_, "$CFG{OUT_DIST_DIR}/$CFG{PKG_OS_TAG}/" ) foreach glob("$CFG{OUT_TEMP_DIR}/$CFG{PKG_NAME}/SRPMS/*.rpm");
-      System( "mv", "-v", $_, "$CFG{OUT_DIST_DIR}/$CFG{PKG_OS_TAG}/" ) foreach glob("$CFG{OUT_TEMP_DIR}/$CFG{PKG_NAME}/RPMS/*/*.rpm");
+      System( "mv", "-v", $_, "$CFG{OUT_DIST_DIR}/" ) foreach glob("$CFG{OUT_TEMP_DIR}/$CFG{PKG_NAME}/SRPMS/*.rpm");
+      System( "mv", "-v", $_, "$CFG{OUT_DIST_DIR}/" ) foreach glob("$CFG{OUT_TEMP_DIR}/$CFG{PKG_NAME}/RPMS/*/*.rpm");
       print "=========================================================================================================\n";
    }
    elsif ( $CFG{PKG_FORMAT} eq "deb" )
@@ -661,7 +625,7 @@ sub Build()
 
       print "\n\n";
       print "=========================================================================================================\n";
-      System( "mv", "-v", $_, "$CFG{OUT_DIST_DIR}/$CFG{PKG_OS_TAG}/" ) foreach glob("$CFG{OUT_TEMP_DIR}/$CFG{PKG_NAME}_*.*");
+      System( "mv", "-v", $_, "$CFG{OUT_DIST_DIR}/" ) foreach glob("$CFG{OUT_TEMP_DIR}/$CFG{PKG_NAME}_*.*");
       print "=========================================================================================================\n";
    }
    else
@@ -676,7 +640,7 @@ sub SelfTest()
    {
       assert(
          _SanitizePkgList( [ "abc-3.4(>=4.4)", "def-6.7(>6.6-1)", "def-6.7(>6.6-1!)", "ghi(=7.0)", "jkl", "aaa | bbb | perl(Carp) >= 3.2" ] ),
-         "abc-3.4 (>= 4.4), def-6.7 (>> 6.6-1.$CFG{PKG_OS_TAG}), def-6.7 (>> 6.6-1), ghi (= 7.0), jkl, aaa | bbb | perl(Carp) (>= 3.2)"
+         "abc-3.4 (>= 4.4), def-6.7 (>> 6.6-1), def-6.7 (>> 6.6-1), ghi (= 7.0), jkl, aaa | bbb | perl(Carp) (>= 3.2)"
       );
    }
 
@@ -684,7 +648,7 @@ sub SelfTest()
    {
       assert(
          _SanitizePkgList( [ "abc-3.4(>=4.4)", "def-6.7(>6.6-1)", "def-6.7(>6.6-1!)", "ghi(=7.0)", "jkl", "aaa | bbb | perl(Carp) >= 3.2" ] ),
-         "abc-3.4 >= 4.4, def-6.7 > 6.6-1.$CFG{PKG_OS_TAG}, def-6.7 > 6.6-1, ghi = 7.0, jkl, aaa or bbb or perl(Carp) >= 3.2"
+         "abc-3.4 >= 4.4, def-6.7 > 6.6-1, def-6.7 > 6.6-1, ghi = 7.0, jkl, aaa or bbb or perl(Carp) >= 3.2"
       );
    }
 }

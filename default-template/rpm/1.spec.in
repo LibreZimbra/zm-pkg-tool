@@ -2,11 +2,11 @@ Summary: @@PKG_SUMMARY@@
 Name: @@PKG_NAME@@
 Version: @@PKG_VERSION@@
 Release: @@PKG_RELEASE@@
-License: ZPL and other
+License: various
 Group: Applications/Messaging
-URL: http://www.zimbra.com
-Vendor: Zimbra, Inc.
-Packager: Zimbra Packaging Services <build@zimbra.com>
+URL: http://librezimbra.github.io/
+Vendor: metux IT consult / LibreZimbra project
+Packager: Enrico Weigelt, metux IT consult <info@metux.net>
 AutoReqProv: no
 Requires: @@PKG_DEPENDS@@
 PreReq: @@PKG_PRE_DEPENDS@@

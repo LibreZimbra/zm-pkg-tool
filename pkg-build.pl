@@ -18,6 +18,7 @@ my $GLOBAL_PATH_TO_SCRIPT_FILE;
 my $GLOBAL_PATH_TO_SCRIPT_DIR;
 my $GLOBAL_PATH_TO_TOP;
 my $CWD;
+my $PACKAGE_DIR;
 
 my %CFG = ();
 
@@ -28,6 +29,11 @@ BEGIN
    $GLOBAL_PATH_TO_SCRIPT_DIR  = dirname($GLOBAL_PATH_TO_SCRIPT_FILE);
    $GLOBAL_PATH_TO_TOP         = dirname($GLOBAL_PATH_TO_SCRIPT_DIR);
    $CWD                        = getcwd();
+   if (defined $ENV{PACKAGE_DIR}) {
+        $PACKAGE_DIR = $ENV{PACKAGE_DIR};
+   } else {
+        $PACKAGE_DIR = "../../build/packages";
+   }
 }
 
 sub LoadConfiguration($)
@@ -288,7 +294,7 @@ sub Init()
          type         => "=s",
          hash_src     => \%cmd_hash,
          validate_sub => undef,
-         default_sub  => sub { return "../../build/packages"; },
+         default_sub  => sub { return $PACKAGE_DIR; },
       },
       {
          name         => "PKG_NAME",
